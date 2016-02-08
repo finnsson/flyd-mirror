@@ -30,9 +30,9 @@ function detachDeps(s) {
 
 /**
  * @private
- * copy from flyd
  */
-function addListeners(deps, s) {
+function attachDeps(s) {
+  var deps = s.deps;
   for (var i = 0; i < deps.length; ++i) {
     deps[i].listeners.push(s);
   }
@@ -55,15 +55,18 @@ function addListeners(deps, s) {
 fmirror.mirror = function(fn) {
   var thisStream = flyd.stream();
   thisStream.deps = [];
+  thisStream.end.deps = [];
 
   function updateListeners() {
     currentAutoStreamFn = thisStream;
     autoStreamFnStack.push(thisStream);
     // clear all triggers / listeners
     detachDeps(thisStream);
+    detachDeps(thisStream.end);
     // rerun fn and collect triggers / listeners
     var result = fn();
-    addListeners(thisStream.deps, thisStream);
+    attachDeps(thisStream);
+    attachDeps(thisStream.end);
     // reset currentAutoStreamFn
     autoStreamFnStack.pop();
     currentAutoStreamFn = autoStreamFnStack[autoStreamFnStack.length - 1]; // last item
@@ -97,6 +100,9 @@ fmirror.image = function(data) {
     if (currentAutoStreamFn) {
       if (currentAutoStreamFn.deps.indexOf(s) === -1) {
         currentAutoStreamFn.deps.push(s);
+        if(s.end) {
+          currentAutoStreamFn.end.deps.push(s.end);
+        }
       }
     }
   }

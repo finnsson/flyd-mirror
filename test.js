@@ -68,6 +68,56 @@ describe('flyd-mirror', function() {
       assert.equal(sqMirror(), -7);
     });
 
+    it('can be terminated manually', function() {
+      var data = {
+        a: flyd.stream(1)
+      };
+      var count = 0;
+      var image = flydMirror.image(data);
+      var sqMirror = flydMirror.mirror(function() {
+        count++;
+        return image.a*image.a;
+      });
+
+      assert.equal(sqMirror(), 1);
+      assert.equal(count, 1);
+      data.a(4);
+      assert.equal(sqMirror(), 16);
+      assert.equal(count, 2);
+      assert.equal(sqMirror.deps.length, 1);
+      // terminate sqMirror
+      sqMirror.end(true);
+      assert.equal(count, 2);
+      assert.equal(sqMirror.deps.length, 0);
+    });
+
+    it('can be terminated automatically', function() {
+      var data = {
+        a: flyd.stream(1)
+      };
+      var count = 0;
+      var image = flydMirror.image(data);
+      var sqMirror = flydMirror.mirror(function() {
+        count++;
+        return image.a*image.a;
+      });
+
+      assert.equal(sqMirror(), 1);
+      assert.equal(count, 1);
+      data.a(4);
+      assert.equal(sqMirror(), 16);
+      assert.equal(count, 2);
+      assert.equal(sqMirror.deps.length, 1);
+      assert.equal(sqMirror.deps[0], data.a);
+      assert.equal(data.a.listeners.length, 1);
+      assert.equal(data.a.listeners[0], sqMirror);
+      // terminate a
+      data.a.end(true);
+      assert.equal(count, 2);
+      assert.equal(sqMirror.deps.length, 0);
+      assert.equal(data.a.listeners.length, 0);
+    });
+
     it('is updated when current dependencies change', function() {
       var a = flyd.stream(1);
       var b = flyd.stream(2);
