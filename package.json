@@ -1,6 +1,6 @@
 {
   "name": "flyd-mirror",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Create an on-demand mirror of a flyd datastructure",
   "main": "index.js",
   "scripts": {
