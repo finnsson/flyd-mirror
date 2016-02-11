@@ -78,6 +78,77 @@ fmirror.mirror = function(fn) {
   return thisStream;
 };
 
+function wrap(key, data, image) {
+  if (key === "constructor" || key === "toString") {
+    // noop
+    return;
+  }
+  let value = data[key];
+  if (!flyd.isStream(value) && typeof value === "function") {
+    image[key] = function() {
+      // TODO: do not use data as scope!
+      return fmirror.image(value.apply(this._$_, arguments));
+    }
+  } else {
+    Object.defineProperty(image, key, {
+      get: function() {
+        var result = value;
+        return fmirror.image(result);
+      },
+      enumerable: true
+    });
+  }
+}
+
+let classImages = {};
+
+var __extends = (this && this.__extends) || function(d, b) {
+  for (var p in b)
+    if (b.hasOwnProperty(p)) d[p] = b[p];
+
+  function __() {
+    this.constructor = d;
+  }
+  d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+
+function getImageClass(data) {
+  let proto = Object.getPrototypeOf(data);
+  if (proto == RegExp.prototype) {
+    return data.constructor;
+  } else if (proto === Object.prototype) {
+    // do nothing
+    return data.constructor;
+  } else if (proto === Function.prototype) {
+    // do nothing
+    return data.constructor;
+  } else if (classImages[proto]) {
+    return classImages[proto];
+  } else {
+    // should be custom prototype. Wrap own properties in recursion
+    let ImageClass = getImageClass(proto);
+    var Image = (function(_super) {
+      __extends(Image, _super);
+
+      function Image() {
+        _super.apply(this, arguments);
+      }
+      return Image;
+    })(ImageClass);
+    /*
+    let Image = function() {
+      ImageClass.call(this);
+    };
+    Image.prototype = new ImageClass();
+    */
+    Object.getOwnPropertyNames(proto).forEach(function(key) {
+      wrap(key, proto, Image.prototype);
+    });
+    classImages[proto] = Image;
+    return Image;
+  }
+}
+
 /**
  * Creates a new mirror
  *
@@ -100,7 +171,7 @@ fmirror.image = function(data) {
     if (currentAutoStreamFn) {
       if (currentAutoStreamFn.deps.indexOf(s) === -1) {
         currentAutoStreamFn.deps.push(s);
-        if(s.end) {
+        if (s.end) {
           currentAutoStreamFn.end.deps.push(s.end);
         }
       }
@@ -110,23 +181,11 @@ fmirror.image = function(data) {
   if (typeof data !== "object") {
     return data;
   }
-  // only image data on object, not its prototype since it would be
-  // very bad practice to put streams on a prototype.
-  var image = {};
-  Object.keys(data).forEach(function(key) {
-    if (!flyd.isStream(data[key]) && typeof data[key] === "function") {
-      image[key] = function() {
-        return fmirror.image(data[key].apply(data, arguments));
-      }
-    } else {
-      Object.defineProperty(image, key, {
-        get: function() {
-          var result = data[key];
-          return fmirror.image(result);
-        },
-        enumerable: true
-      });
-    }
+  let ImageClass = getImageClass(data);
+  let image = new ImageClass();
+  image._$_ = data;
+  Object.getOwnPropertyNames(data).forEach(function(key) {
+    wrap(key, data, image);
   });
   return image;
 };

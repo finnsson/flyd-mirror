@@ -10,8 +10,6 @@ describe('flyd-mirror', function() {
         b: flyd.stream(2)
       };
       var image = flydMirror.image(data);
-      // console.error("data.a", data.a());
-      // console.error("data['a'].apply(data, arguments)", data["a"].apply(data, []));
       assert.equal(image.a, 1);
       assert.equal(image.b, 2);
 
@@ -26,9 +24,68 @@ describe('flyd-mirror', function() {
     it('unwraps streams in functions', function() {
       var data = {
         name: flyd.stream("Pelle"),
-        getName: function() { return this.name() },
-        getNameStream: function() { return this.name }
+        getName: function() {
+          return this.name()
+        },
+        getNameStream: function() {
+          return this.name
+        },
+        getArr: function() {
+          return ["foo"];
+        }
       };
+
+      var image = flydMirror.image(data);
+      assert.equal(image.getName(), "Pelle");
+      assert.equal(image.getArr()[0], "foo");
+      data.name("Arne");
+      assert.equal(image.getNameStream(), "Arne");
+    });
+
+    it('unwraps streams with arrays', function() {
+      var data = {
+        names: flyd.stream(["Pelle", "Arne"]),
+        arrNames: ["Lars", "Urban"]
+      };
+
+      var image = flydMirror.image(data);
+      assert.equal(image.names[0], "Pelle");
+      assert.equal(image.names[1], "Arne");
+      assert.equal(image.arrNames[0], "Lars");
+      assert.equal(image.arrNames[1], "Urban");
+      assert.equal(image.arrNames.length, 2);
+
+      var arrNamesLength = image.arrNames.map(function(n) {
+        return n.length;
+      });
+      assert.equal(arrNamesLength.length, 2);
+      assert.equal(arrNamesLength[0], 4);
+      assert.equal(arrNamesLength[1], 5);
+
+      data.names(["Sofia", "Lena"]);
+
+      assert.equal(image.names[0], "Sofia");
+      assert.equal(image.names[1], "Lena");
+
+      var namesLength = image.names.map(function(n) {
+        return n.length;
+      });
+      assert.equal(namesLength.length, 2);
+      assert.equal(namesLength[0], 5);
+      assert.equal(namesLength[1], 4);
+    });
+
+    it('unwraps data with methods on prototype', function() {
+      var User = function(name) {
+        this.name = flyd.stream(name);
+      };
+      User.prototype.getName = function() {
+        return this.name();
+      };
+      User.prototype.getNameStream = function() {
+        return this.name;
+      };
+      var data = new User("Pelle");
 
       var image = flydMirror.image(data);
       assert.equal(image.getName(), "Pelle");
@@ -39,7 +96,9 @@ describe('flyd-mirror', function() {
     it('permits calling updating actions with arguments', function() {
       var data = {
         name: flyd.stream("Pelle"),
-        setName: function(n) { this.name(n); }
+        setName: function(n) {
+          this.name(n);
+        }
       };
 
       var image = flydMirror.image(data);
@@ -57,7 +116,7 @@ describe('flyd-mirror', function() {
       };
       var image = flydMirror.image(data);
       var sqMirror = flydMirror.mirror(function() {
-        return image.a*image.b;
+        return image.a * image.b;
       });
       assert.equal(sqMirror(), 6);
 
@@ -76,7 +135,7 @@ describe('flyd-mirror', function() {
       var image = flydMirror.image(data);
       var sqMirror = flydMirror.mirror(function() {
         count++;
-        return image.a*image.a;
+        return image.a * image.a;
       });
 
       assert.equal(sqMirror(), 1);
@@ -99,7 +158,7 @@ describe('flyd-mirror', function() {
       var image = flydMirror.image(data);
       var sqMirror = flydMirror.mirror(function() {
         count++;
-        return image.a*image.a;
+        return image.a * image.a;
       });
 
       assert.equal(sqMirror(), 1);
@@ -132,7 +191,7 @@ describe('flyd-mirror', function() {
 
       var abTest = flydMirror.mirror(function() {
         count++;
-        if(image.a > 0) {
+        if (image.a > 0) {
           return image.b;
         } else {
           return image.c;

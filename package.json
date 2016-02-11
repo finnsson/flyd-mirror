@@ -4,7 +4,7 @@
   "description": "Create an on-demand mirror of a flyd datastructure",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -R dot test.js",
+    "test": "mocha test.js",
     "docs": "documentation -f md index.js > API.md",
     "size-test": "uglifyjs index.js -m -c -o flyd-mirror.min.js && gzip flyd-mirror.min.js"
   },
