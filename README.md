@@ -1,6 +1,6 @@
 # flyd-mirror
 
-A small (0.5 kB min+gzip) module for [flyd](https://github.com/paldepind/flyd)
+A small (0.8 kB min+gzip) module for [flyd](https://github.com/paldepind/flyd)
 that can generate `mirror`s and `image`s, useful when you want to combine
 reactive programming with plain old JavaScript objects.
 

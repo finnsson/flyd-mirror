@@ -83,7 +83,7 @@ function wrap(key, data, image) {
     // noop
     return;
   }
-  let value = data[key];
+  var value = data[key];
   if (!flyd.isStream(value) && typeof value === "function") {
     image[key] = function() {
       // TODO: do not use data as scope!
@@ -100,7 +100,7 @@ function wrap(key, data, image) {
   }
 }
 
-let classImages = {};
+var classImages = {};
 
 var __extends = (this && this.__extends) || function(d, b) {
   for (var p in b)
@@ -113,7 +113,7 @@ var __extends = (this && this.__extends) || function(d, b) {
 };
 
 function getImageClass(data) {
-  let proto = Object.getPrototypeOf(data);
+  var proto = Object.getPrototypeOf(data);
   if (proto == RegExp.prototype) {
     return data.constructor;
   } else if (proto === Object.prototype) {
@@ -126,7 +126,7 @@ function getImageClass(data) {
     return classImages[proto];
   } else {
     // should be custom prototype. Wrap own properties in recursion
-    let ImageClass = getImageClass(proto);
+    var ImageClass = getImageClass(proto);
     var Image = (function(_super) {
       __extends(Image, _super);
 
@@ -181,8 +181,8 @@ fmirror.image = function(data) {
   if (typeof data !== "object") {
     return data;
   }
-  let ImageClass = getImageClass(data);
-  let image = new ImageClass();
+  var ImageClass = getImageClass(data);
+  var image = new ImageClass();
   image._$_ = data;
   Object.getOwnPropertyNames(data).forEach(function(key) {
     wrap(key, data, image);

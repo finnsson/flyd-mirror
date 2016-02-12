@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha test.js",
+    "test:electron": "electron-mocha --renderer test.js",
     "docs": "documentation -f md index.js > API.md",
     "size-test": "uglifyjs index.js -m -c -o flyd-mirror.min.js && gzip flyd-mirror.min.js"
   },
@@ -20,6 +21,7 @@
   "devDependencies": {
     "documentation": "^3.0.4",
     "mocha": "^2.4.5",
+    "electron-mocha": "^0.8.0",
     "uglify-js": "^2.6.1"
   }
 }
