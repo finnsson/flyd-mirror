@@ -177,6 +177,9 @@ fmirror.image = function(data) {
       }
     }
   }
+  if(data == null) {
+    return data;
+  }
   // only image objects, not functions, primitives, etc
   if (typeof data !== "object") {
     return data;

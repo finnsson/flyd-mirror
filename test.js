@@ -106,6 +106,22 @@ describe('flyd-mirror', function() {
       image.setName("Arne");
       assert.equal(image.name, "Arne");
     });
+
+    it('permits null and undefined values', function() {
+      var data = {
+        name: null,
+        age: flyd.stream(null),
+        gender: undefined
+      };
+
+      var image = flydMirror.image(data);
+      assert.equal(image.name, null);
+      assert.equal(image.age, null);
+      assert.equal(image.gender, undefined);
+
+      data.age(42);
+      assert.equal(image.age, 42);
+    });
   });
 
   describe('mirror api', function() {
@@ -228,6 +244,41 @@ describe('flyd-mirror', function() {
       assert.equal(b.listeners.length, 0);
       assert.equal(c.listeners.length, 1);
       assert.equal(abTest.deps.length, 2);
+    });
+
+    it('updates correct mirror when dependencies change', function() {
+      var data = {
+        a: flyd.stream(42),
+        b: {
+          a: flyd.stream(11)
+        }
+      };
+      var image = flydMirror.image(data);
+      var rootMirrorCount = 0;
+      var subMirrorCount = 0;
+      var subMirrorResult = 0;
+      var rootMirror = flydMirror.mirror(function() {
+        rootMirrorCount++;
+        var subMirror = flydMirror.mirror(function() {
+          subMirrorCount++;
+          subMirrorResult = image.b.a * image.a;
+        });
+        return image.a*image.a;
+      });
+
+      assert.equal(rootMirror(), 42*42);
+      assert.equal(rootMirrorCount, 1);
+      assert.equal(subMirrorResult, 42*11);
+      assert.equal(subMirrorCount, 1);
+
+      data.b.a(12);
+
+      // now only subMirror should be updated
+      assert.equal(rootMirror(), 42*42);
+      assert.equal(rootMirrorCount, 1);
+      assert.equal(subMirrorResult, 42*12);
+      assert.equal(subMirrorCount, 2);
+
     });
   });
 });
