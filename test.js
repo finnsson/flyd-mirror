@@ -10,15 +10,11 @@ describe('flyd-mirror', function() {
         b: flyd.stream(2)
       };
       var image = flydMirror.image(data);
-      assert.equal(image.a, 1);
-      assert.equal(image.b, 2);
+      assert.equal(image.a(), 1);
+      assert.equal(image.b(), 2);
 
       data.a(5);
-      assert.equal(image.a, 5);
-
-      var c = flyd.stream("Pelle");
-      data.b(c);
-      assert.equal(image.b, "Pelle");
+      assert.equal(image.a(), 5);
     });
 
     it('unwraps streams in functions', function() {
@@ -39,7 +35,7 @@ describe('flyd-mirror', function() {
       assert.equal(image.getName(), "Pelle");
       assert.equal(image.getArr()[0], "foo");
       data.name("Arne");
-      assert.equal(image.getNameStream(), "Arne");
+      assert.equal(image.getNameStream()(), "Arne");
     });
 
     it('unwraps streams with arrays', function() {
@@ -49,8 +45,8 @@ describe('flyd-mirror', function() {
       };
 
       var image = flydMirror.image(data);
-      assert.equal(image.names[0], "Pelle");
-      assert.equal(image.names[1], "Arne");
+      assert.equal(image.names()[0], "Pelle");
+      assert.equal(image.names()[1], "Arne");
       assert.equal(image.arrNames[0], "Lars");
       assert.equal(image.arrNames[1], "Urban");
       assert.equal(image.arrNames.length, 2);
@@ -64,10 +60,10 @@ describe('flyd-mirror', function() {
 
       data.names(["Sofia", "Lena"]);
 
-      assert.equal(image.names[0], "Sofia");
-      assert.equal(image.names[1], "Lena");
+      assert.equal(image.names()[0], "Sofia");
+      assert.equal(image.names()[1], "Lena");
 
-      var namesLength = image.names.map(function(n) {
+      var namesLength = image.names().map(function(n) {
         return n.length;
       });
       assert.equal(namesLength.length, 2);
@@ -90,7 +86,7 @@ describe('flyd-mirror', function() {
       var image = flydMirror.image(data);
       assert.equal(image.getName(), "Pelle");
       data.name("Arne");
-      assert.equal(image.getNameStream(), "Arne");
+      assert.equal(image.getNameStream()(), "Arne");
     });
 
     it('permits calling updating actions with arguments', function() {
@@ -102,9 +98,9 @@ describe('flyd-mirror', function() {
       };
 
       var image = flydMirror.image(data);
-      assert.equal(image.name, "Pelle");
+      assert.equal(image.name(), "Pelle");
       image.setName("Arne");
-      assert.equal(image.name, "Arne");
+      assert.equal(image.name(), "Arne");
     });
 
     it('permits null and undefined values', function() {
@@ -116,11 +112,11 @@ describe('flyd-mirror', function() {
 
       var image = flydMirror.image(data);
       assert.equal(image.name, null);
-      assert.equal(image.age, null);
+      assert.equal(image.age(), null);
       assert.equal(image.gender, undefined);
 
       data.age(42);
-      assert.equal(image.age, 42);
+      assert.equal(image.age(), 42);
     });
   });
 
@@ -132,7 +128,7 @@ describe('flyd-mirror', function() {
       };
       var image = flydMirror.image(data);
       var sqMirror = flydMirror.mirror(function() {
-        return image.a * image.b;
+        return image.a() * image.b();
       });
       assert.equal(sqMirror(), 6);
 
@@ -151,7 +147,7 @@ describe('flyd-mirror', function() {
       var image = flydMirror.image(data);
       var sqMirror = flydMirror.mirror(function() {
         count++;
-        return image.a * image.a;
+        return image.a() * image.a();
       });
 
       assert.equal(sqMirror(), 1);
@@ -174,7 +170,7 @@ describe('flyd-mirror', function() {
       var image = flydMirror.image(data);
       var sqMirror = flydMirror.mirror(function() {
         count++;
-        return image.a * image.a;
+        return image.a() * image.a();
       });
 
       assert.equal(sqMirror(), 1);
@@ -207,10 +203,10 @@ describe('flyd-mirror', function() {
 
       var abTest = flydMirror.mirror(function() {
         count++;
-        if (image.a > 0) {
-          return image.b;
+        if (image.a() > 0) {
+          return image.b();
         } else {
-          return image.c;
+          return image.c();
         }
       });
       assert.equal(abTest(), 2);
@@ -261,9 +257,9 @@ describe('flyd-mirror', function() {
         rootMirrorCount++;
         var subMirror = flydMirror.mirror(function() {
           subMirrorCount++;
-          subMirrorResult = image.b.a * image.a;
+          subMirrorResult = image.b.a() * image.a();
         });
-        return image.a*image.a;
+        return image.a()*image.a();
       });
 
       assert.equal(rootMirror(), 42*42);

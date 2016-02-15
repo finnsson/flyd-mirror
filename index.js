@@ -78,15 +78,23 @@ fmirror.mirror = function(fn) {
   return thisStream;
 };
 
+
 function wrap(key, data, image) {
   if (key === "constructor" || key === "toString") {
     // noop
     return;
   }
   var value = data[key];
-  if (!flyd.isStream(value) && typeof value === "function") {
+  if (typeof value === "function") {
     image[key] = function() {
-      // TODO: do not use data as scope!
+      if(currentAutoStreamFn && arguments.length === 0 && flyd.isStream(value)) {
+        if (currentAutoStreamFn.deps.indexOf(value) === -1) {
+          currentAutoStreamFn.deps.push(value);
+          if (value.end) {
+            currentAutoStreamFn.end.deps.push(value.end);
+          }
+        }
+      }
       return fmirror.image(value.apply(this._$_, arguments));
     }
   } else {
@@ -165,18 +173,6 @@ function getImageClass(data) {
  */
 fmirror.image = function(data) {
   // automatically unwrap streams
-  while (flyd.isStream(data)) {
-    var s = data;
-    data = data();
-    if (currentAutoStreamFn) {
-      if (currentAutoStreamFn.deps.indexOf(s) === -1) {
-        currentAutoStreamFn.deps.push(s);
-        if (s.end) {
-          currentAutoStreamFn.end.deps.push(s.end);
-        }
-      }
-    }
-  }
   if(data == null) {
     return data;
   }
