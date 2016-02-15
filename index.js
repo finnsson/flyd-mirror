@@ -108,7 +108,7 @@ function wrap(key, data, image) {
   }
 }
 
-var classImages = {};
+var classImages = [];
 
 var __extends = (this && this.__extends) || function(d, b) {
   for (var p in b)
@@ -130,8 +130,8 @@ function getImageClass(data) {
   } else if (proto === Function.prototype) {
     // do nothing
     return data.constructor;
-  } else if (classImages[proto]) {
-    return classImages[proto];
+  } else if (classImages.indexOf(proto) !== -1) {
+    return classImages[classImages.indexOf(proto)];
   } else {
     // should be custom prototype. Wrap own properties in recursion
     var ImageClass = getImageClass(proto);
@@ -152,7 +152,7 @@ function getImageClass(data) {
     Object.getOwnPropertyNames(proto).forEach(function(key) {
       wrap(key, proto, Image.prototype);
     });
-    classImages[proto] = Image;
+    classImages.push(Image);
     return Image;
   }
 }
