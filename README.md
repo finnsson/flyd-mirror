@@ -12,7 +12,7 @@ npm install flyd-mirror
 
 ## Examples
 
-`image` is automatically unwrapping streams...
+`image` is mirroring streams...
 
 ```javascript
 var data = {
@@ -20,20 +20,19 @@ var data = {
   age: flyd.stream(1023)
 };
 var image = fm.image(data);
-assert.equal(image.name, "Fry");
-assert.equal(image.age, 1023);
+assert.equal(image.name(), "Fry");
+assert.equal(image.age(), 1023);
 ```
 
-...while `mirror` is listening to these unwrappings...
+...while `mirror` is listening to these images...
 
 ```javascript
 var sq = fm.mirror(function() {
-  return image.age*image.age;
+  return image.age()*image.age();
 });
 assert.equal(sq(), 1046529);
 data.age(1024); // happy birthday!
 assert.equal(sq(), 1048576);
 ```
 
-making it possible for the mirror to automatically update when the underlying
-streams are updated.
+making it possible for the mirror to automatically update when the underlying streams are updated.
